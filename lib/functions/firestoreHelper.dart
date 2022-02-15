@@ -54,7 +54,7 @@ Future <String> getIdentifiant() async {
   return uid;
 }
 
-Future <Users> geUser(String uid) async {
+Future <Users> getUser(String uid) async {
   DocumentSnapshot snapshot = await fire_user.doc(uid).get();
   return Users(snapshot);
 }

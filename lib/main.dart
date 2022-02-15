@@ -3,10 +3,12 @@ import 'package:firstprojetimmw/functions/firestoreHelper.dart';
 import 'package:firstprojetimmw/view/dashboard.dart';
 import 'package:firstprojetimmw/view/inscription.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  initializeDateFormatting("fr_FR");
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
