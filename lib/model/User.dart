@@ -1,7 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User{
+class Users{
   String id = "";
   String? nom;
   String? prenom;
@@ -13,7 +13,7 @@ class User{
 
 
 
-  User(DocumentSnapshot snapshot){
+  Users(DocumentSnapshot snapshot){
     id = snapshot.id;
     Map<String,dynamic> map = snapshot.data() as Map<String,dynamic>;
     nom = map["NOM"];
@@ -22,7 +22,6 @@ class User{
     mail = map["MAIL"];
     pseudo = map ["PSEUDO"];
     dateNaissance = map ["DATENAISSANCE"];
-
 
   }
 
