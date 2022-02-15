@@ -1,10 +1,12 @@
 
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:firstprojetimmw/functions/firestoreHelper.dart';
 import 'package:firstprojetimmw/model/User.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-//import 'package:date_format/date_format.dart';
+import 'package:intl/intl.dart';
 
 class myDrawer extends StatefulWidget{
   @override
@@ -20,7 +22,10 @@ class myDrawerState extends State<myDrawer>{
   String? identifiant;
   Users? utilisateur;
   DateTime time = DateTime.now();
-  //Dateformat dateFormat = Dateformat("fr_FR");
+  DateFormat dateFormat = DateFormat.yMd("fr_FR");
+  String imageFilePath = "";
+  Uint8List? bytesImage;
+  String imageFileName = "";
 
 
   @override
@@ -61,16 +66,45 @@ class myDrawerState extends State<myDrawer>{
       child:  Column(
         //mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Container(
-            height: 150,
-            width: 150,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: (utilisateur!.image == null)?NetworkImage("https://firebasestorage.googleapis.com/v0/b/firstprojetimm.appspot.com/o/image_disponible.png?alt=media&token=809cfa6c-b1af-44e1-bd85-a12ae9ef0f39"):NetworkImage(utilisateur!.image!)
+          InkWell(
+            child: Container(
+              height: 150,
+              width: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                    image: (utilisateur!.image == null)?NetworkImage("https://firebasestorage.googleapis.com/v0/b/firstprojetimm.appspot.com/o/image_disponible.png?alt=media&token=809cfa6c-b1af-44e1-bd85-a12ae9ef0f39"):NetworkImage(utilisateur!.image!),
+                    fit: BoxFit.fill
+
+                ),
               ),
             ),
+            onTap: (){
+              //appuye une fois cela affiche mon image en plus 400*400
+              (utilisateur!.image==null)?Container():printImage();
+
+            },
+            onLongPress: () async {
+              //appuyer longtemps ça doit récuperer une image sur mon téléphone
+              FilePickerResult? resultat = await FilePicker.platform.pickFiles(
+                withData: true,
+                type: FileType.image
+              );
+              if(resultat!=null){
+                setState(() {
+                  imageFileName = resultat.files.first.name;
+                  bytesImage = resultat.files.first.bytes;
+                  print(imageFileName);
+                });
+                await afficherImage();
+              }
+
+
+
+            },
           ),
+          //Avatar
+
           SizedBox(height: 10,),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -96,7 +130,7 @@ class myDrawerState extends State<myDrawer>{
           Text("${utilisateur!.prenom}  ${utilisateur!.nom}"),
 
           SizedBox(height: 10,),
-          (utilisateur!.dateNaissance== null)?Text(time.toString()):Text(utilisateur!.dateNaissance!.toString()),
+          (utilisateur!.dateNaissance== null)?Text(dateFormat.format(time)):Text(dateFormat.format(utilisateur!.dateNaissance!)),
 
 
 
@@ -124,9 +158,72 @@ class myDrawerState extends State<myDrawer>{
     );
   }
 
+
+  afficherImage(){
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text("Souhatez-vous enregistrer cette image ? "),
+            content: Image.memory(bytesImage!,width: 400,height: 400,),
+            actions: [
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: Text("Annuler")
+              ),
+              ElevatedButton(
+                  onPressed: (){
+                    FirestoreHelper().stockageImage(imageFileName, bytesImage!).then((value){
+                      setState(() {
+                        imageFilePath = value;
+                      });
+                      Map<String,dynamic> map = {
+                        "IMAGE": imageFilePath,
+                      };
+                      FirestoreHelper().updateUser(utilisateur!.id, map);
+                    });
+                    Navigator.pop(context);
+
+                  },
+                  child: Text("Enregistrer")
+              ),
+            ],
+          );
+
+        }
+    );
+  }
+
+
+ printImage(){
+    return showDialog(
+      barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            content: Image.network(utilisateur!.image!,width: 400,height: 400,),
+            actions: [
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: Text("Ok")
+              )
+            ],
+          );
+
+        }
+    );
+
+ }
+
 UpdateBox(){
     String update = "";
     return showDialog(
+      barrierDismissible: false,
         context: context,
         builder: (BuildContext context){
           return AlertDialog(

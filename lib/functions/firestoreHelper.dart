@@ -1,12 +1,16 @@
 
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firstprojetimmw/model/User.dart';
 
 class FirestoreHelper{
   //Attributs
   final auth = FirebaseAuth.instance;
   final fire_user = FirebaseFirestore.instance.collection("Users");
+  final firestorage = FirebaseStorage.instance;
 
 
 
@@ -57,6 +61,13 @@ Future <String> getIdentifiant() async {
 Future <Users> getUser(String uid) async {
   DocumentSnapshot snapshot = await fire_user.doc(uid).get();
   return Users(snapshot);
+}
+
+
+Future <String >stockageImage(String nomImage,Uint8List data) async {
+  TaskSnapshot download = await firestorage.ref("cover/$nomImage").putData(data);
+  String urlChemin = await download.ref.getDownloadURL();
+  return urlChemin;
 }
 
 
